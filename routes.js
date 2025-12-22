@@ -63,7 +63,7 @@ const protectedFiles = ['index.html', 'genre.html', 'manhwa.html', 'settings.htm
 router.get(['/', '/index.html', ...protectedFiles.map(f => `/${f}`)], auth, (req, res) => {
     // Determine the file to serve: 'index.html' for root, otherwise the matched path
     const fileName = req.path === '/' ? 'index.html' : path.basename(req.path);
-    res.sendFile(fileName, { root: path.join(__dirname, 'public/manhwa') }, (err) => {
+    res.sendFile(fileName, { root: path.join(__dirname, 'public') }, (err) => {
         if (err) res.status(500).send(`Error loading ${fileName}`);
     });
 });
@@ -243,7 +243,7 @@ router.get('/api/genre/:genreSlug', async (req, res) => {
 });
 
 router.get('/genre/:genreName', auth, (req, res) => {
-    res.sendFile('genre.html', { root: path.join(__dirname, 'public/manhwa') }, (err) => {
+    res.sendFile('genre.html', { root: path.join(__dirname, 'public') }, (err) => {
         if (err) {
             logger.error(`Error sending genre.html: ${err}`, "routes");
             res.status(404).send('Page not found');
@@ -357,7 +357,7 @@ router.post('/api/user/rating', auth, async (req, res) => {
 });
 
 router.get('/manhwa/:title', auth, (req, res) => {
-    res.sendFile('manhwa.html', { root: path.join(__dirname, 'public/manhwa') }, (err) => {
+    res.sendFile('manhwa.html', { root: path.join(__dirname, 'public') }, (err) => {
         if (err) {
             logger.error(`Error sending manhwa.html: ${err}`, "routes");
             res.status(404).send('Page not found');
@@ -368,7 +368,7 @@ router.get('/manhwa/:title', auth, (req, res) => {
 // --- USER AUTH ROUTES ---
 
 router.get('/signup', (req, res) => {
-    res.sendFile('signup.html', { root: path.join(__dirname, 'public/manhwa') }, (err) => {
+    res.sendFile('signup.html', { root: path.join(__dirname, 'public') }, (err) => {
         if (err) res.status(500).send('Error loading sign-up page');
     });
 });
@@ -396,7 +396,7 @@ router.post('/signup', async (req, res) => {
 });
 
 router.get('/login', (req, res) => {
-    res.sendFile('login.html', { root: path.join(__dirname, 'public/manhwa') }, (err) => {
+    res.sendFile('login.html', { root: path.join(__dirname, 'public') }, (err) => {
         if (err) res.status(500).send('Error loading login page');
     });
 });
