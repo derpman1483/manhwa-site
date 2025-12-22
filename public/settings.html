@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Manhwa Browser</title>
+    <style>
+        /* Shared Styles from Existing Codebase */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: #080808;
+            padding: 20px;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-left: 10px;
+        }
+        .nav-link:hover {
+            background-color: #1a1a1a;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .setting-section {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .setting-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 10px;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        .setting-description {
+            flex-grow: 1;
+        }
+        .setting-description p {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .setting-description small {
+            color: #888;
+            font-size: 12px;
+        }
+        /* Custom Button Styles (similar to .page-button) */
+        .setting-button {
+            padding: 10px 20px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 150px;
+            text-align: center;
+        }
+        .setting-button:hover:not(:disabled) {
+            background-color: #3a3a3a;
+            border-color: #4a4a4a;
+        }
+        .setting-button.danger {
+            background-color: #5c1818;
+            border-color: #7b1d1d;
+        }
+        .setting-button.danger:hover {
+            background-color: #7b1d1d;
+        }
+        /* Toggle Switch Styling (standard dark mode components) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 45px;
+            height: 25px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3a3a3a;
+            transition: .4s;
+            border-radius: 25px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 17px;
+            width: 17px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Application Settings</h1>
+        <div>
+            <a href="/index.html" class="nav-link">Browse</a>
+            <a href="/genres.html" class="nav-link">Genres</a>
+            <a href="/search.html" class="nav-link">Search</a>
+            <a href="/profile.html" class="nav-link">Profile</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Content Sources Section -->
+        <div class="setting-section">
+            <h2>Content Sources</h2>
+            <div class="setting-item">
+                <div class="setting-description">
+                    <p>Enable adult content (adult)</p>
+                    <small>Toggle fetching and display of adult titles from adult site.</small>
+                </div>
+                <label class="switch">
+                    <!-- Placeholder: This would be a server-side setting -->
+                    <input type="checkbox" checked onchange="adult()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const baseUrl = '/api/admin/'; 
+        function adult() {
+            let isAdultEnabled = localStorage.getItem('adult') === 'true';
+            localStorage.setItem('adult', !isAdultEnabled);
+            alert('Adult content ' + (!isAdultEnabled ? 'enabled' : 'disabled') + '.');
+        }
+        async function handleSettingAction(action) {
+            let confirmationMessage = '';
+            let endpoint = '';
+            let method = 'POST';
+
+            switch (action) {
+                case 'run-scraper':
+                    confirmationMessage = 'Are you sure you want to manually trigger the scraper? This can take several minutes.';
+                    endpoint = 'scrape-now'; 
+                    break;
+                case 'reload-cache':
+                    confirmationMessage = 'Are you sure you want to reload the in-memory search cache?';
+                    endpoint = 'reload-cache';
+                    break;
+                case 'wipe-database':
+                    confirmationMessage = 'CRITICAL: Are you absolutely sure you want to WIPE ALL DATABASES? This cannot be undone.';
+                    endpoint = 'wipe-db';
+                    method = 'DELETE'; 
+                    break;
+                default:
+                    alert('Unknown action.');
+                    return;
+            }
+
+            if (!confirm(confirmationMessage)) {
+                return;
+            }
+
+            try {
+                // Find the clicked button to disable it
+                const button = event.target;
+                const originalText = button.textContent;
+                button.disabled = true;
+                button.textContent = 'Processing...';
+
+                const response = await fetch(baseUrl + endpoint, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`Action "${action}" successful!\nDetails: ${result.message || 'No details provided.'}`);
+                } else {
+                    const error = await response.json();
+                    alert(`Action "${action}" failed! Status: ${response.status}\nError: ${error.error || 'Server error.'}`);
+                }
+                
+            } catch (error) {
+                console.error(`Error performing action ${action}:`, error);
+                alert(`Action "${action}" failed: Could not connect to the server.`);
+            } finally {
+                // Re-enable button
+                const button = event.target;
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+    </script>
+</body>
+</html>

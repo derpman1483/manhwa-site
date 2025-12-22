@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manhwa Browser</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: #080808;
+            padding: 20px;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #1a1a1a;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #1a1a1a;
+            background-color: #080808;
+            padding: 0 20px;
+        }
+        .tab-button {
+            padding: 15px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #888;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+        .tab-button:hover {
+            color: #ffffff;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .mg-item {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .mg-item:hover {
+            transform: translateY(-5px);
+        }
+        .mg-cover {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        .mg-title {
+            font-size: 14px;
+            color: #ffffff;
+            text-align: center;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 40px;
+            padding: 20px;
+        }
+        .page-button {
+            padding: 10px 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .page-button:hover:not(:disabled) {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+        .page-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .page-info {
+            color: #888;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Man Browser</h1>
+        <div>
+            <a href="/genres.html" class="nav-link">Genres</a>
+            <a href="/search.html" class="nav-link">Search</a>
+            <a href="/settings.html" class="nav-link">Settings</a>
+            <a href="/profile.html" class="nav-link">Profile</a>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-button active" id="shojoBtn" onclick="openTab(event, 'shojo')">Shojo</button>
+        <button class="tab-button" id="mgBtn" onclick="openTab(event, 'mg')">MgKakalot</button>
+        <button class="tab-button" id="toongodButton" onclick="openTab(event, 'toongod')">Adult</button>
+    </div>
+
+    <div class="container">
+        <!-- Shojo Tab -->
+        <div id="shojo" class="tab-content active">
+            <div id="shojo-grid" class="grid"></div>
+            <div id="shojo-pagination" class="pagination"></div>
+        </div>
+
+        <!-- Mg Tab -->
+        <div id="mg" class="tab-content">
+            <div id="mg-grid" class="grid"></div>
+            <div id="mg-pagination" class="pagination"></div>
+        </div>
+
+        <!-- Adult Tab -->
+        <div id="toongod" class="tab-content">
+            <div id="toongod-grid" class="grid"></div>
+            <div id="toongod-pagination" class="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '/api/';
+        let currentShojoPage = 1;
+        let currentMgPage = 1;
+        let currentToongodPage = 1;
+
+        let shojoCache = {};
+        let mgCache = {};
+        let toongodCache = {};
+
+        // 1. Initial State Logic
+        if (localStorage.getItem('adult') === null) {
+            localStorage.setItem('adult', JSON.stringify(false));
+        }
+
+        function checkAdultVisibility() {
+            const isAdultEnabled = JSON.parse(localStorage.getItem('adult'));
+            document.getElementById('toongodButton').style.display = isAdultEnabled ? 'inline-block' : 'none';
+        }
+
+        // 2. Tab Navigation
+        function openTab(evt, tabName) {
+            // Update active tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            if (evt) {
+                evt.target.classList.add('active');
+            } else {
+                document.getElementById(tabName + 'Btn')?.classList.add('active');
+            }
+
+            // Update active content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+
+            // Load content
+            if (tabName === 'shojo') loadShojoPage(currentShojoPage);
+            else if (tabName === 'mg') loadMgPage(currentMgPage);
+            else if (tabName === 'toongod') {
+                if (JSON.parse(localStorage.getItem('adult'))) {
+                    loadToongodPage(currentToongodPage);
+                } else {
+                    alert('Adult content is disabled in settings.');
+                    openTab(null, 'shojo');
+                }
+            }
+        }
+
+        // 3. Grid Rendering
+        function renderGrid(items, gridId) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            if (!items || items.length === 0) {
+                grid.innerHTML = '<div class="loading">No items found</div>';
+                return;
+            }
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'mg-item';
+                div.onclick = () => {
+                    const titleSlug = encodeURIComponent(item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''));
+                    window.location.href = `/manhwa/${titleSlug}`;
+                };
+
+                const img = document.createElement('img');
+                img.className = 'mg-cover';
+                // Double base64 encoding as per your original logic
+                img.src = item.cover_image_url ? `/api/img/${btoa(btoa(item.cover_image_url))}` : '/placeholder.png';
+                img.onerror = function() { this.src = '/404'; };
+                
+                const title = document.createElement('div');
+                title.className = 'mg-title';
+                title.textContent = item.title;
+                
+                div.appendChild(img);
+                div.appendChild(title);
+                grid.appendChild(div);
+            });
+        }
+
+        // 4. Pagination Rendering
+        function renderPagination(page, totalPages, paginationId, onPageChange) {
+            const pagination = document.getElementById(paginationId);
+            pagination.innerHTML = '';
+            
+            const prevButton = document.createElement('button');
+            prevButton.className = 'page-button';
+            prevButton.textContent = 'Previous';
+            prevButton.disabled = page <= 1;
+            prevButton.onclick = () => onPageChange(page - 1);
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'page-info';
+            pageInfo.textContent = `Page ${page} of ${totalPages}`;
+            
+            const nextButton = document.createElement('button');
+            nextButton.className = 'page-button';
+            nextButton.textContent = 'Next';
+            nextButton.disabled = page >= totalPages;
+            nextButton.onclick = () => onPageChange(page + 1);
+            
+            pagination.appendChild(prevButton);
+            pagination.appendChild(pageInfo);
+            pagination.appendChild(nextButton);
+        }
+
+        // 5. Data Fetching Functions
+        async function loadShojoPage(page) {
+            currentShojoPage = page;
+            const grid = document.getElementById('shojo-grid');
+            
+            if (shojoCache[page]) {
+                renderGrid(shojoCache[page].results, 'shojo-grid');
+                renderPagination(page, 98, 'shojo-pagination', loadShojoPage);
+                return;
+            }
+
+            grid.innerHTML = '<div class="loading">Loading...</div>';
+            try {
+                const response = await fetch(`${baseUrl}shojo/listing/batch?page=${page}`);
+                const data = await response.json();
+                data.pages.forEach(p => {
+                    if (p.success) shojoCache[p.page] = { results: p.results };
+                });
+                renderGrid(shojoCache[page].results, 'shojo-grid');
+                renderPagination(page, 98, 'shojo-pagination', loadShojoPage);
+            } catch (error) {
+                grid.innerHTML = '<div class="error">Error loading Shojo content.</div>';
+            }
+        }
+
+        async function loadMgPage(page) {
+            currentMgPage = page;
+            const grid = document.getElementById('mg-grid');
+            
+            if (mgCache[page]) {
+                renderGrid(mgCache[page].results, 'mg-grid');
+                renderPagination(page, 2959, 'mg-pagination', loadMgPage); // Fixed: was loadShojoPage
+                return;
+            }
+
+            grid.innerHTML = '<div class="loading">Loading...</div>';
+            try {
+                const response = await fetch(`${baseUrl}mg/listing/batch?page=${page}`);
+                const data = await response.json();
+                data.pages.forEach(p => {
+                    if (p.success) mgCache[p.page] = { results: p.results };
+                });
+                renderGrid(mgCache[page].results, 'mg-grid');
+                renderPagination(page, 2959, 'mg-pagination', loadMgPage);
+            } catch (error) {
+                grid.innerHTML = '<div class="error">Error loading Mg content.</div>';
+            }
+        }
+
+        async function loadToongodPage(page) {
+            currentToongodPage = page;
+            const grid = document.getElementById('toongod-grid');
+            
+            if (toongodCache[page]) {
+                renderGrid(toongodCache[page].results, 'toongod-grid');
+                renderPagination(page, 62, 'toongod-pagination', loadToongodPage); // Fixed: was loadShojoPage
+                return;
+            }
+
+            grid.innerHTML = '<div class="loading">Loading...</div>';
+            try {
+                const response = await fetch(`${baseUrl}toongod/listing/batch?page=${page}`);
+                const data = await response.json();
+                data.pages.forEach(p => {
+                    if (p.success) toongodCache[p.page] = { results: p.results };
+                });
+                renderGrid(toongodCache[page].results, 'toongod-grid');
+                renderPagination(page, 62, 'toongod-pagination', loadToongodPage);
+            } catch (error) {
+                grid.innerHTML = '<div class="error">Error loading Adult content.</div>';
+            }
+        }
+
+        // 6. Preloading Logic
+        async function preloadInitial() {
+            try {
+                const endpoints = ['shojo', 'mg', 'toongod'];
+                endpoints.forEach(async (type) => {
+                    const res = await fetch(`${baseUrl}${type}/listing/batch?page=1`);
+                    const data = await res.json();
+                    data.pages.forEach(p => {
+                        if (type === 'shojo') shojoCache[p.page] = { results: p.results };
+                        if (type === 'mg') mgCache[p.page] = { results: p.results };
+                        if (type === 'toongod') toongodCache[p.page] = { results: p.results };
+                    });
+                });
+            } catch (e) { console.log("Preload failed", e); }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdultVisibility();
+            preloadInitial();
+            loadShojoPage(1);
+        });
+    </script>
+</body>
+</html>

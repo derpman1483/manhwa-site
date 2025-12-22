@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genre - Manhwa Browser</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: #080808;
+            padding: 20px;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-left: 10px;
+        }
+        .nav-link:hover {
+            background-color: #1a1a1a;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .genre-header {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+        }
+        .genre-header h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+        .genre-count {
+            color: #888;
+            font-size: 14px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #1a1a1a;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 15px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #888;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+        .tab-button:hover {
+            color: #ffffff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .mg-item {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .mg-item:hover {
+            transform: translateY(-5px);
+        }
+        .mg-cover {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        .mg-title {
+            font-size: 14px;
+            color: #ffffff;
+            text-align: center;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Genre Browser</h1>
+        <div>
+            <a href="/index.html" class="nav-link">Browse</a>
+            <a href="/genres.html" class="nav-link">Genres</a>
+            <a href="/search.html" class="nav-link">Search</a>
+            <a href="/settings.html" class="nav-link">Settings</a>
+            <a href="/profile.html" class="nav-link">Profile</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="genre-header">
+            <h2 id="genre-name">Loading...</h2>
+            <div class="genre-count" id="genre-count">Loading...</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'all')">All</button>
+            <button class="tab-button" onclick="openTab(event, 'manga')">Manga</button>
+            <button class="tab-button" onclick="openTab(event, 'shojo')">Shojo</button>
+            <button class="tab-button" onclick="openTab(event, 'toongod')" id="toongodButton">adult</button>
+        </div>
+
+        <div id="all" class="tab-content active">
+            <div id="all-grid" class="grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <div id="manga" class="tab-content">
+            <div id="manga-grid" class="grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <div id="shojo" class="tab-content">
+            <div id="shojo-grid" class="grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <div id="toongod" class="tab-content">
+            <div id="toongod-grid" class="grid">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '/api/';
+        let allResults = [];
+        let mangaResults = [];
+        let shojoResults = [];
+        let toongodResults = [];
+        
+        if(!localStorage.getItem('adult')){
+            localStorage.setItem('adult', JSON.stringify(false));
+        }
+        if(!JSON.parse(localStorage.getItem('adult'))){
+            document.getElementById('toongodButton').style.display = 'none';
+        }
+
+        // Get genre slug from URL
+        const genreSlug = decodeURIComponent(window.location.pathname.split('/').pop() || '');
+
+        function openTab(evt, tab) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tab).classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+            
+            // Render appropriate grid
+            if (tab === 'all') {
+                renderGrid(allResults, 'all-grid');
+            } else if (tab === 'manga') {
+                renderGrid(mangaResults, 'manga-grid');
+            } else if (tab === 'shojo') {
+                renderGrid(shojoResults, 'shojo-grid');
+            } else if (tab === 'toongod') {
+                if(localStorage.getItem('adult') && JSON.parse(localStorage.getItem('adult')) === true){
+                    renderGrid(toongodResults, 'toongod-grid');
+                } else {
+                    alert('adult content is disabled in settings.');
+                    openTab(null, 'all');
+                }
+            }
+        }
+
+        function renderGrid(items, gridId) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="loading">No items found</div>';
+                return;
+            }
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'mg-item';
+                const titleSlug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                div.onclick = () => {
+                    window.location.href = `/manhwa/${titleSlug}`;
+                };
+                console.log(item);
+                const img = document.createElement('img');
+                img.className = 'mg-cover';
+                img.src = `/api/img/${btoa(btoa(item.cover_image_url))}` || '/';
+                img.onerror = function() { this.src = '/'; };
+                img.alt = item.title;
+                
+                const title = document.createElement('div');
+                title.className = 'mg-title';
+                title.textContent = item.title;
+                
+                div.appendChild(img);
+                div.appendChild(title);
+                grid.appendChild(div);
+            });
+        }
+
+        async function loadGenre() {
+            try {
+                // Fetch all results (manga, shojo, and toongod)
+                const [mangaResponse, shojoResponse, toongodResponse] = await Promise.all([
+                    fetch(`${baseUrl}genre/${encodeURIComponent(genreSlug)}?type=manga`),
+                    fetch(`${baseUrl}genre/${encodeURIComponent(genreSlug)}?type=shojo`),
+                    fetch(`${baseUrl}genre/${encodeURIComponent(genreSlug)}?type=toongod`)
+                ]);
+                
+                mangaResults = (await mangaResponse.json()) || [];
+                shojoResults = (await shojoResponse.json()) || [];
+                
+                if(localStorage.getItem('adult') && JSON.parse(localStorage.getItem('adult')) === true){
+                    toongodResults = (await toongodResponse.json()) || [];
+                } else {
+                    toongodResults = [];
+                }
+                
+                allResults = [...mangaResults, ...shojoResults, ...toongodResults];
+                
+                if (allResults.length === 0) {
+                    throw new Error('Genre not found or no titles available');
+                }
+                
+                // Format genre name
+                const genreName = genreSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                document.getElementById('genre-name').textContent = genreName;
+                
+                // Update count
+                document.getElementById('genre-count').textContent = `${allResults.length} titles found (${mangaResults.length} Manga, ${shojoResults.length} Shojo, ${toongodResults.length} ToonGod)`;
+                
+                // Render initial grid
+                renderGrid(allResults, 'all-grid');
+            } catch (error) {
+                console.error('Error loading genre:', error);
+                document.getElementById('all-grid').innerHTML = '<div class="error">Error loading genre. Please try again.</div>';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGenre();
+        });
+    </script>
+</body>
+</html>

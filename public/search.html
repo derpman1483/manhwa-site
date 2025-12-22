@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mana Search</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #080808; color: #ffffff; min-height: 100vh;
+        }
+        .header {
+            background-color: #080808; padding: 20px; border-bottom: 1px solid #1a1a1a;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .nav-link {
+            color: #ffffff; text-decoration: none; padding: 8px 16px;
+            border-radius: 4px; transition: background-color 0.2s;
+        }
+        .nav-link:hover { background-color: #1a1a1a; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .tabs { display: flex; border-bottom: 1px solid #1a1a1a; margin-bottom: 20px; }
+        .tab-button {
+            padding: 15px 20px; cursor: pointer; border: none; background: none;
+            font-size: 16px; color: #888; transition: all 0.2s; border-bottom: 2px solid transparent;
+        }
+        .tab-button.active { color: #ffffff; border-bottom-color: #ffffff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .search-container { position: relative; margin-bottom: 20px; }
+        input[type="text"] {
+            width: 100%; padding: 12px 20px; margin-bottom: 15px; border: 1px solid #303030;
+            border-radius: 40px; font-size: 16px; background-color: #1c1c1c; color: #ffffff;
+        }
+        .genre-filter { margin-bottom: 20px; }
+        .genre-select {
+            width: 100%; padding: 10px 16px; border: 1px solid #303030; border-radius: 40px;
+            font-size: 14px; background-color: #1c1c1c; color: #ffffff; cursor: pointer;
+        }
+        .result-list { list-style: none; padding: 0; }
+        .result-item {
+            border: 1px solid #1a1a1a; padding: 15px; margin-bottom: 15px; border-radius: 8px;
+            display: flex; gap: 15px; background-color: #0f0f0f;
+        }
+        .result-image { width: 90px; height: 130px; object-fit: cover; border-radius: 4px; background-color: #1a1a1a; }
+        .result-details { flex-grow: 1; }
+        .result-details h4 { margin: 0 0 8px 0; }
+        .result-details h4 a { color: #ffffff; text-decoration: none; }
+        .result-details p { margin: 4px 0; font-size: 14px; color: #888; }
+        .matched-name { color: #aaa; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mana Search</h1>
+        <div>
+            <a href="/index.html" class="nav-link">Browse</a>
+            <a href="/genres.html" class="nav-link">Genres</a>
+            <a href="/settings.html" class="nav-link">Settings</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'Mg')">Manga</button>
+            <button class="tab-button" onclick="openTab(event, 'Shojo')">Shojo</button>
+            <button class="tab-button" onclick="openTab(event, 'ToonGod')" id="toongodButton">Adult (Raw)</button>
+        </div>
+
+        <!-- Manga Tab -->
+        <div id="Mg" class="tab-content active">
+            <div class="search-container">
+                <input type="text" id="mg-search-input" placeholder="Search Manga (Kakalot)..." onkeyup="handleSearch('mg')" />
+            </div>
+            <div class="genre-filter">
+                <select id="mg-genre-filter" class="genre-select" onchange="handleSearch('mg')">
+                    <option value="">All Genres</option>
+                </select>
+            </div>
+            <ul id="mg-results" class="result-list"></ul>
+        </div>
+
+        <!-- Shojo Tab -->
+        <div id="Shojo" class="tab-content">
+            <div class="search-container">
+                <input type="text" id="shojo-search-input" placeholder="Search Shojo..." onkeyup="handleSearch('shojo')" />
+            </div>
+            <div class="genre-filter">
+                <select id="shojo-genre-filter" class="genre-select" onchange="handleSearch('shojo')">
+                    <option value="">All Genres</option>
+                </select>
+            </div>
+            <ul id="shojo-results" class="result-list"></ul>
+        </div>
+
+        <!-- Adult Tab -->
+        <div id="ToonGod" class="tab-content">
+            <div class="search-container">
+                <input type="text" id="toongod-search-input" placeholder="Search Adult (18+)..." onkeyup="handleSearch('toongod')" />
+            </div>
+            <div class="genre-filter">
+                <select id="toongod-genre-filter" class="genre-select" onchange="handleSearch('toongod')">
+                    <option value="">All Genres</option>
+                </select>
+            </div>
+            <ul id="toongod-results" class="result-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '/api/';
+        let searchTimeout;
+
+        const isAdultEnabled = () => JSON.parse(localStorage.getItem('adult')) === true;
+
+        async function loadGenres() {
+            try {
+                if (!isAdultEnabled()) document.getElementById('toongodButton').style.display = 'none';
+
+                // Fixed: Added mg fetch to the Promise array
+                const [mgRes, shojoRes, toongodRes] = await Promise.all([
+                    fetch(`${baseUrl}genres?type=manga`),
+                    fetch(`${baseUrl}genres?type=shojo`),
+                    fetch(`${baseUrl}genres?type=toongod`)
+                ]);
+                
+                const mgGenres = await mgRes.json();
+                const shojoGenres = await shojoRes.json();
+                const toongodGenres = isAdultEnabled() ? await toongodRes.json() : [];
+                
+                const populate = (id, list) => {
+                    const el = document.getElementById(id);
+                    list.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g; opt.textContent = g;
+                        el.appendChild(opt);
+                    });
+                };
+
+                populate('mg-genre-filter', mgGenres);
+                populate('shojo-genre-filter', shojoGenres);
+                populate('toongod-genre-filter', toongodGenres);
+            } catch (e) { console.error('Genre load error:', e); }
+        }
+
+        function openTab(evt, dbType) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(dbType).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        function handleSearch(dbType) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = document.getElementById(`${dbType}-search-input`).value;
+                performSearch(dbType, query);
+            }, 400);
+        }
+
+        async function performSearch(dbType, query) {
+            const resultsList = document.getElementById(`${dbType}-results`);
+            if (query.length < 2) { resultsList.innerHTML = ''; return; }
+
+            resultsList.innerHTML = '<li style="text-align:center; padding:20px; color:#888;">Searching...</li>';
+
+            try {
+                const genre = document.getElementById(`${dbType}-genre-filter`).value;
+                let url = `${baseUrl}${dbType}/search?q=${encodeURIComponent(query)}`;
+                if (genre) url += `&genre=${encodeURIComponent(genre)}`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                resultsList.innerHTML = data.length ? '' : '<li style="text-align:center; padding:20px; color:#888;">No results found.</li>';
+
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'result-item';
+                    const slug = encodeURIComponent(item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''));
+                    console.log(item);
+                    li.innerHTML = `
+                        <img class="result-image" src="/api/img/${btoa(btoa(item.cover_image_url)) || ''}" onerror="this.src='/'">
+                        <div class="result-details">
+                            <h4><a href="/manhwa/${slug}">${item.title}</a></h4>
+                            <p><strong>Author:</strong> ${item.author || 'Unknown'}</p>
+                            <p><strong>Genres:</strong> ${item.genres ? item.genres.join(', ') : 'N/A'}</p>
+                            <p class="matched-name">Match: ${item.matchedName || item.title}</p>
+                        </div>
+                    `;
+                    resultsList.appendChild(li);
+                });
+            } catch (err) {
+                resultsList.innerHTML = '<li style="color:#ff4444; text-align:center; padding:20px;">Search failed.</li>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadGenres);
+    </script>
+</body>
+</html>

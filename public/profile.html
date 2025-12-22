@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Manhwa Browser</title>
+    <style>
+        /* Shared Styles from Existing Codebase */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: #080808;
+            padding: 20px;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-left: 10px;
+        }
+        .nav-link:hover {
+            background-color: #1a1a1a;
+        }
+        
+        /* New Layout Styles */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 30px;
+        }
+        
+        /* Sidebar (Reading History) */
+        .sidebar {
+            flex-shrink: 0;
+            width: 300px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #2a2a2a;
+            max-height: 80vh; /* Constraint for scrollbar */
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 10px;
+            position: sticky;
+            top: 0;
+            background-color: #1a1a1a;
+            z-index: 10;
+        }
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px dashed #2a2a2a;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-item:hover {
+            color: #ccc;
+        }
+        .history-title {
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        .history-chapter {
+            font-size: 12px;
+            color: #888;
+        }
+        .loading-history {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Main Content (Profile Details and Lists) */
+        .profile-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .profile-header {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        .profile-header h2 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+        .profile-header p {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background-color: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        .stat-card p {
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .logout-button {
+            background-color: #3a3a3a;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        .logout-button:hover {
+            background-color: #5a5a5a;
+        }
+
+        /* Lists Section */
+        .lists-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .list-card {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .list-card h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 5px;
+        }
+        .list-item {
+            padding: 8px 0;
+            font-size: 14px;
+            color: #ccc;
+            border-bottom: 1px dashed #2a2a2a;
+            cursor: pointer;
+            transition: color 0.2s;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .list-item:hover {
+            color: #ffffff;
+        }
+        .list-empty {
+            color: #888;
+            font-size: 14px;
+            padding: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                max-height: none;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>User Profile</h1>
+        <div>
+            <a href="/index.html" class="nav-link">Browse</a>
+            <a href="/genres.html" class="nav-link">Genres</a>
+            <a href="/settings.html" class="nav-link">Settings</a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        
+        <!-- Sidebar: Reading History -->
+        <div class="sidebar">
+            <h2>Recent History</h2>
+            <div id="history-list">
+                <div class="loading-history">Loading history...</div>
+                <!-- History items will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Main Content: User Details and Lists -->
+        <div class="profile-content">
+            <div class="profile-header">
+                <h2 id="profile-username">Welcome, Guest!</h2>
+                <p id="profile-member-since">Member Since: Loading...</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="stat-favorites">0</h3>
+                        <p>Favorites</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="stat-rated">0</h3>
+                        <p>Rated Titles</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="stat-bookmarked">0</h3>
+                        <p>Bookmarked Chapters</p>
+                    </div>
+                </div>
+
+                <button class="logout-button" onclick="logout()">Logout</button>
+                <a href="/settings.html" class="logout-button" style="text-decoration: none; display: inline-block;">Settings</a>
+            </div>
+
+            <!-- Custom Lists Section -->
+            <div class="lists-section">
+                
+                <!-- Favorites List -->
+                <div class="list-card">
+                    <h3>Favorite Titles</h3>
+                    <div id="favorites-list">
+                        <div class="list-empty">Loading...</div>
+                        <!-- Favorites items will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Rated Titles List -->
+                <div class="list-card">
+                    <h3>Rated Titles</h3>
+                    <div id="rated-list">
+                        <div class="list-empty"></div>
+                        <!-- Rated items will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Bookmarked Chapters List -->
+                <div class="list-card">
+                    <h3>Bookmarked Chapters</h3>
+                    <div id="bookmarked-list">
+                        <div class="list-empty">Loading...</div>
+                        <!-- Bookmarked items will be inserted here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '/api/';
+        
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        async function loadProfile() {
+            const username = getCookie('username');
+            const usernameDisplay = document.getElementById('profile-username');
+            
+            if (username) {
+                usernameDisplay.textContent = `Welcome, ${username}!`;
+            } else {
+                if (!getCookie('auth')) { 
+                    window.location.href = '/login';
+                    return;
+                }
+                usernameDisplay.textContent = 'Welcome, User!';
+            }
+            
+            // --- Fetch User Data from API ---
+            try {
+                const response = await fetch(baseUrl + 'profile');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    document.getElementById('profile-member-since').textContent = `Member Since: ${data.memberSince || 'N/A'}`;
+                    document.getElementById('stat-favorites').textContent = data.favoritesCount || 0;
+                    document.getElementById('stat-rated').textContent = data.ratedCount || 0;
+                    document.getElementById('stat-bookmarked').textContent = data.bookmarksCount || 0;
+                    
+                    renderHistory(data.readingHistory || []);
+                    renderList(data.favorites || [], 'favorites-list', true);
+                    renderList(data.bookmarks || [], 'bookmarked-list', true);
+                    renderList(data.ratings || [], 'rated-list', true);
+                    // Rated List (Placeholder until implemented in DB/API)
+
+                } else {
+                    console.error('Failed to fetch profile data:', response.statusText);
+                    document.getElementById('favorites-list').innerHTML = '<div class="list-empty">Failed to load data.</div>';
+                    document.getElementById('bookmarked-list').innerHTML = '<div class="list-empty">Failed to load data.</div>';
+                }
+
+            } catch (error) {
+                console.error('Error fetching profile data:', error);
+                document.getElementById('favorites-list').innerHTML = '<div class="list-empty">Network error fetching data.</div>';
+                document.getElementById('bookmarked-list').innerHTML = '<div class="list-empty">Network error fetching data.</div>';
+            }
+        }
+        
+        /**
+         * Renders a list of items (Favorites or Bookmarks)
+         * @param {Array} items - List of items from API (assumes {slug, title, chapterTitle/etc})
+         * @param {string} listId - ID of the container div
+         * @param {boolean} isTitleList - True for Favorites (Title-only), False for Bookmarks (Chapter-specific)
+         */
+        function renderList(items, listId, isTitleList) {
+            const listContainer = document.getElementById(listId);
+            listContainer.innerHTML = '';
+            
+            if (items.length === 0) {
+                listContainer.innerHTML = `<div class="list-empty">No ${isTitleList ? 'favorites' : 'bookmarks'} found.</div>`;
+                return;
+            }
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                // Determine the link: Favorites go to the Manhwa page, Bookmarks go to the Chapter
+                const link = `/manhwa/${item.slug}`
+                div.onclick = () => {window.location.href = link;};
+                div.textContent = item.title;
+                listContainer.appendChild(div);
+            });
+        }
+
+
+        function renderHistory(historyItems) {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            if (historyItems.length === 0) {
+                historyList.innerHTML = '<div class="loading-history">No reading history found.</div>';
+                return;
+            }
+
+            // Slice to show only the last 10 entries
+            const recentHistory = historyItems.slice(0, 200);
+            console.log(recentHistory);
+            recentHistory.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                if(item.url.endsWith('/')){
+                    item.url = item.url.slice(0, -1);
+                }
+                if(item.chapter.endsWith('/')){
+                    item.chapter = item.chapter.slice(0, -1);
+                }
+                // NOTE: item.slug and item.chapterSlug are assumed properties from the backend
+                if(item.url.includes('kingofshojo.com')){
+                div.onclick = () => {window.location.href = `/manhwa/${item.slug}`;localStorage.setItem('going',item.chapter.split('-chapter-')[1].replace(/-/g, '.'));}; 
+                }else{
+                    div.onclick = () => {window.location.href = `/manhwa/${item.slug}`;localStorage.setItem('going',(item.chapter.split('chapter-')[1]||item.chapter.split('chap-')[1]).split('-')[0].replace(/-/g, '.'));}
+                }
+                div.innerHTML = `
+                    <div class="history-title">${item.title}</div>
+            ${item.url.includes('kingofshojo.com')? `<div class="history-chapter">${item.chapter.split('-chapter-')[1].replace(/-/g, '.') || 'Last Chapter Read'}</div>` : `<div class="history-chapter">${(item.chapter.split('chapter-')[1]||item.chapter.split('chap-')[1]).split('-')[0].replace(/-/g, '.') || 'Last Chapter Read'}</div>`}
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                if (response.ok) {
+                    window.location.href = '/login'; // Redirect to login after successful logout
+                } else {
+                    alert('Logout failed. Please clear cookies manually.');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Network error during logout.');
+            }
+        }
+        
+        loadProfile();
+    </script>
+</body>
+</html>

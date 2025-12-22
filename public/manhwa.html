@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manhwa Reader</title>
+    <style>
+        /* ... (CSS STYLES RETAINED FROM PREVIOUS RESPONSE) ... */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: #080808;
+            padding: 15px 20px;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 60%;
+        }
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-left: 10px;
+        }
+        .nav-link:hover {
+            background-color: #1a1a1a;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .manhwa-info {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+        }
+        .manhwa-cover {
+            flex-shrink: 0;
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #0f0f0f;
+        }
+        .manhwa-details {
+            flex-grow: 1;
+        }
+        .manhwa-details h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        .manhwa-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .meta-item {
+            font-size: 14px;
+            color: #888;
+        }
+        .meta-item strong {
+            color: #ffffff;
+            margin-right: 5px;
+        }
+        .genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .genre-tag {
+            padding: 4px 12px;
+            background-color: #2a2a2a;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #ffffff;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .genre-tag:hover {
+            background-color: #3a3a3a;
+            transform: translateY(-1px);
+        }
+        .chapters-section {
+            margin-bottom: 40px;
+        }
+        .chapters-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .chapters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .chapter-item {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .chapter-item:hover {
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+        }
+        .chapter-item.active {
+            background-color: #2a2a2a;
+            border-color: #ffffff;
+        }
+        .chapter-title {
+            font-size: 14px;
+            color: #ffffff;
+            text-align: center;
+        }
+        .viewer-section {
+            display: none;
+        }
+        .viewer-section.active {
+            display: block;
+        }
+        .viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border-radius: 6px;
+        }
+        .viewer-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .viewer-button {
+            padding: 10px 20px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .viewer-button:hover:not(:disabled) {
+            background-color: #3a3a3a;
+            border-color: #4a4a4a;
+        }
+        .viewer-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .chapter-title-viewer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .chapter-title-viewer > span {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .images-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .chapter-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            background-color: #1a1a1a;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ff4444;
+        }
+        .back-button {
+            padding: 8px 16px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .back-button:hover {
+            background-color: #2a2a2a;
+        }
+        
+        /* Styles for Manhwa Actions */
+        .manhwa-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: center;
+            flex-wrap: wrap; 
+        }
+        .action-button {
+            padding: 10px 15px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .action-button:hover {
+            background-color: #3a3a3a;
+        }
+        /* Style for active FAVORITE button */
+        .action-button.favorite-active {
+            background-color: #4CAF50; /* Green */
+            border-color: #4CAF50;
+            color: #080808;
+        }
+        /* Style for active BOOKMARK/READING button */
+        .action-button.bookmark-active {
+            background-color: #007bff; /* Blue */
+            border-color: #007bff;
+            color: #ffffff;
+        }
+        
+        /* Rating System Styles (Stars) */
+        .rating {
+            display: inline-block;
+            direction: rtl;
+        }
+        .rating input {
+            display: none;
+        }
+        .rating label {
+            color: #ccc;
+            font-size: 24px;
+            padding: 0 5px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .rating label:hover,
+        .rating label:hover ~ label,
+        .rating input:checked ~ label {
+            color: #ffc107;
+        }
+        .rating-label {
+            margin-right: 10px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 id="manhwa-title">Loading...</h1>
+        <div>
+            <!-- FIX: Added id="back-button" and inline style to hide initially -->
+            <button class="back-button" id="back-button" onclick="showChapters()" style="display: none;">Back to Chapters</button>
+            <a href="/index.html" class="nav-link">Browse</a>
+            <a href="/genres.html" class="nav-link">Genres</a>
+            <a href="/search.html" class="nav-link">Search</a>
+            <a href="/settings.html" class="nav-link">Settings</a>
+            <a href="/profile.html" class="nav-link">Profile</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="manhwa-info-section" class="manhwa-info" style="display: none;">
+            <img id="manhwa-cover" class="manhwa-cover" src="" alt="Cover">
+            <div class="manhwa-details">
+                <h2 id="manhwa-detail-title">Loading...</h2>
+                
+                <div class="manhwa-actions">
+                    <button class="action-button" id="favorite-btn" onclick="toggleFavorite()">
+                        <span id="favorite-text">Favorite</span>
+                    </button>
+                    
+                    <!-- Title Bookmark / Reading List Button -->
+                    <button class="action-button" id="bookmark-title-btn" onclick="toggleTitleBookmark()">
+                        <span id="bookmark-title-text">Add to Reading List</span>
+                    </button>
+                    
+                    <span class="rating-label">Your Rating:</span>
+                    <div class="rating" id="rating-stars">
+                        <input type="radio" id="star5" name="rating" value="5" onclick="rate(5)"/><label for="star5" title="5 stars">&#9733;</label>
+                        <input type="radio" id="star4" name="rating" value="4" onclick="rate(4)"/><label for="star4" title="4 stars">&#9733;</label>
+                        <input type="radio" id="star3" name="rating" value="3" onclick="rate(3)"/><label for="star3" title="3 stars">&#9733;</label>
+                        <input type="radio" id="star2" name="rating" value="2" onclick="rate(2)"/><label for="star2" title="2 stars">&#9733;</label>
+                        <input type="radio" id="star1" name="rating" value="1" onclick="rate(1)"/><label for="star1" title="1 star">&#9733;</label>
+                    </div>
+                </div>
+
+                <div class="manhwa-meta">
+                    <div class="meta-item"><strong>Author:</strong> <span id="manhwa-author">N/A</span></div>
+                    <div class="meta-item"><strong>Updated:</strong> <span id="manhwa-updated">N/A</span></div>
+                    <div class="meta-item"><strong>Type:</strong> <span id="manhwa-type">N/A</span></div>
+                </div>
+                <div id="manhwa-genres" class="genres"></div>
+            </div>
+        </div>
+        
+        <div id="chapters-section" class="chapters-section">
+            <h2>Chapters</h2>
+            <div id="chapters-grid" class="chapters-grid">
+                <div class="loading">Loading chapters...</div>
+            </div>
+        </div>
+
+        <div id="viewer-section" class="viewer-section">
+            <div class="viewer-header">
+                <div class="chapter-title-viewer">
+                    <span id="current-chapter-title">Chapter</span>
+                </div>
+                <div class="viewer-controls">
+                    <button class="viewer-button" id="prev-chapter" onclick="loadPreviousChapter()">Previous</button>
+                    <button class="viewer-button" id="next-chapter" onclick="loadNextChapter()">Next</button>
+                </div>
+            </div>
+            <div id="images-container" class="images-container">
+                <div class="loading">Loading images...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '/api/';
+        let chapters = [];
+        let currentChapterIndex = -1;
+        let detailUrl = '';
+        let siteType = '';
+        let manhwaData = null;
+        let isFavorite = false;
+        let isTitleBookmarked = false;
+        let userBookmarks = []; // Cache all user bookmarks for fast status check
+        // Get slug from URL path
+        const slug = decodeURIComponent(window.location.pathname.split('/').pop() || '');
+        if(localStorage.getItem(`rating-${slug}`)){
+            const ratingValue = parseFloat(localStorage.getItem(`rating-${slug}`));
+            document.getElementById(`star${ratingValue}`).checked = true;
+        }
+
+        async function init() {
+            try {
+                const response = await fetch(`${baseUrl}manhwa/${encodeURIComponent(slug)}`);
+                if (!response.ok) throw new Error('Manhwa not found');
+                
+                manhwaData = await response.json();
+                
+                detailUrl = manhwaData.url;
+                siteType = manhwaData.type || ('shojo');
+                
+                displayManhwaInfo(manhwaData);
+                await loadUserStatus(); // Load user-specific status (Favorite/Rating/Bookmarks)
+                await loadChapters();
+                
+                document.querySelectorAll('#rating-stars input').forEach(radio => {
+                    radio.addEventListener('mouseup', (e) => {
+                        const ratingValue = parseFloat(e.target.value);
+                        setRating(ratingValue);
+                    });
+                });
+                if(localStorage.getItem('going')){
+            console.log('Going to chapter:', localStorage.getItem('going'));
+            if(parseFloat(localStorage.getItem('going'))>=0){
+                console.log('Loading chapter from localStorage:', localStorage.getItem('going'));
+                loadChapter(findChapterIndexByNumber(parseFloat(localStorage.getItem('going'))));
+            }else{
+                console.log('Invalid chapter index in localStorage, clearing.');
+            }
+            localStorage.removeItem('going');
+        }
+            } catch (error) {
+                console.error('Error loading manhwa:', error);
+                document.getElementById('chapters-grid').innerHTML = '<div class="error">Error loading manhwa. Please go back and try again.</div>';
+            }
+        }
+        async function rate(ratingValue) {
+            if(ratingValue < 1 || ratingValue > 5) return;
+            await setRating(ratingValue);
+        }
+        async function loadUserStatus() {
+            try {
+                const response = await fetch(baseUrl + 'profile');
+                if (!response.ok) return;
+
+                const userData = await response.json();
+                // --- Favorites Status ---
+                const favoriteItem = (userData.favorites || []).find(f => f.slug === slug);
+                isFavorite = !!favoriteItem;
+                updateFavoriteButton();
+
+                // --- Title Bookmark Status (Checking if *any* chapter bookmark exists) ---
+                // Simpler logic for this detail page button: if any chapter is bookmarked, the title is "bookmarked"
+                const titleBookmarked = (userData.bookmarks || []).some(b => b.slug === slug);
+                isTitleBookmarked = !!titleBookmarked; 
+                updateTitleBookmarkButton();
+
+                // --- Rating Status ---
+                const ratingItem = (userData.ratings || []).find(r => r.slug === slug);
+                if (ratingItem) {
+                    document.getElementById(`star${ratingItem.rating}`).checked = true;
+                }
+
+                // --- Bookmark Cache (for checking status in loadChapter) ---
+                userBookmarks = userData.bookmarks || [];
+
+            } catch (e) {
+                console.warn("Could not load user status for this title.", e);
+            }
+        }
+        function findChapterIndexByNumber(chapterNumber) {
+            console.log(chapters)
+            let chapterIndex = chapters.findIndex(chap => chap.title.toLowerCase() === `chapter ${chapterNumber}`);
+            chapterIndex = chapterIndex == -1 ? chapters.findIndex(chap => parseFloat(chap.title.toLowerCase().replace('chapter ', '').replace('chap ', '')) === chapterNumber) : chapterIndex;
+            console.log('Found chapter index for chapter number', chapterNumber, ':', chapterIndex);
+            return chapterIndex;
+        }
+        function updateFavoriteButton() {
+            const btn = document.getElementById('favorite-btn');
+            const text = document.getElementById('favorite-text');
+            if (isFavorite) {
+                btn.classList.add('favorite-active');
+                text.textContent = '★ Favorited';
+            } else {
+                btn.classList.remove('favorite-active');
+                text.textContent = '☆ Favorite';
+            }
+        }
+        
+        function updateTitleBookmarkButton() {
+            const btn = document.getElementById('bookmark-title-btn');
+            const text = document.getElementById('bookmark-title-text');
+            if (isTitleBookmarked) {
+                btn.classList.add('bookmark-active');
+                text.textContent = 'Remove from Reading List';
+            } else {
+                btn.classList.remove('bookmark-active');
+                text.textContent = 'Add to Reading List';
+            }
+        }
+
+        async function toggleFavorite() {
+            if (!manhwaData) return;
+
+            isFavorite = !isFavorite;
+            updateFavoriteButton();
+            
+            try {
+                const response = await fetch(baseUrl + 'user/favorite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slug: slug, title: manhwaData.title, isFavorite: isFavorite })
+                });
+
+                if (!response.ok) {
+                    isFavorite = !isFavorite;
+                    updateFavoriteButton();
+                    alert('Failed to update favorites.');
+                }
+            } catch (error) {
+                isFavorite = !isFavorite;
+                updateFavoriteButton();
+                console.error('Favorite toggle error:', error);
+                alert('Network error updating favorites.');
+            }
+        }
+        
+        // This function will toggle a generic Title Bookmark/Reading List entry.
+        // NOTE: The current API POST /api/user/bookmark is designed for CHAPTER bookmarks.
+        // For simplicity, we will use the same endpoint, assuming "bookmarking a title" means
+        // bookmarking the first chapter (or simply using the Favorite API as a placeholder)
+        async function toggleTitleBookmark() {
+             
+             const isBookmarkedInCache = userBookmarks.some(b => b.slug === slug); // Check cache based on title slug
+             
+             // The action will be to reverse the current known state of the title being tracked.
+             isTitleBookmarked = !isTitleBookmarked;
+             updateTitleBookmarkButton();
+
+             try {
+                 const response = await fetch(baseUrl + 'user/bookmark', {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({
+                         title: manhwaData.title,
+                         slug: slug,
+                         isBookmarked: isTitleBookmarked
+                     })
+                 });
+
+                 if (!response.ok) {
+                     isTitleBookmarked = !isTitleBookmarked;
+                     updateTitleBookmarkButton();
+                     alert('Failed to update reading list.');
+                 } else {
+                     // Force cache reload to show correct state across the app
+                     await loadUserStatus(); 
+                 }
+             } catch (error) {
+                 isTitleBookmarked = !isTitleBookmarked;
+                 updateTitleBookmarkButton();
+                 console.error('Reading List toggle error:', error);
+                 alert('Network error updating reading list.');
+             }
+        }
+
+
+        async function setRating(ratingValue) {
+            if(ratingValue < 1 || ratingValue > 5) return;
+            const currentRating = document.querySelector('#rating-stars input:checked')?.value;
+
+            try {
+                const response = await fetch(baseUrl + 'user/rating', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slug: slug, title: manhwaData.title, rating: ratingValue})
+                });
+
+                if (!response.ok) {
+                    throw new Error('Rating update failed');
+                }
+                document.getElementById(`star${ratingValue}`).checked = true;
+                localStorage.setItem(`rating-${slug}`, ratingValue);
+            } catch (error) {
+                console.error('Rating error:', error);
+                alert('Failed to update rating.');
+            }
+        }
+        
+        function displayManhwaInfo(data) {
+            document.getElementById('manhwa-title').textContent = data.title || 'Manhwa Reader';
+            document.getElementById('manhwa-info-section').style.display = 'flex';
+            
+            const coverImg = document.getElementById('manhwa-cover');
+            if (data.cover_image_url && data.cover_image_url !== 'N/A') {
+                coverImg.src = `/api/img/${btoa(btoa(data.cover_image_url))}`;
+                coverImg.decoding = 'async';
+                coverImg.alt = data.title;
+                coverImg.onerror = function() { this.src = 'https://via.placeholder.com/200x300/1a1a1a/888?text=No+Image'; };
+            } else {
+                coverImg.src = 'https://via.placeholder.com/200x300/1a1a1a/888?text=No+Image';
+            }
+            
+            document.getElementById('manhwa-detail-title').textContent = data.title;
+            document.getElementById('manhwa-author').textContent = data.author || 'N/A';
+            document.getElementById('manhwa-updated').textContent = data.updated || 'N/A';
+            document.getElementById('manhwa-type').textContent = data.type === 'mg' ? 'MgFire' : (data.type === 'shojo' ? 'KingOfShojo' : 'ToonGod');
+            
+            const genresContainer = document.getElementById('manhwa-genres');
+            genresContainer.innerHTML = '';
+            if (data.genres && data.genres.length > 0) {
+                data.genres.forEach(genre => {
+                    const tag = document.createElement('a');
+                    tag.className = 'genre-tag';
+                    const genreSlug = genre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                    tag.href = `/genre/${encodeURIComponent(genreSlug)}`;
+                    tag.textContent = genre;
+                    genresContainer.appendChild(tag);
+                });
+            } else {
+                genresContainer.innerHTML = '<span class="genre-tag">No genres</span>';
+            }
+        }
+        
+        async function loadChapters() {
+            try {
+                const response = await fetch(`${baseUrl}chapters?url=${encodeURIComponent(detailUrl)}&type=${siteType}`);
+                const data = await response.json();
+                chapters = data.chapters || [];
+                if (chapters.length === 0) {
+                    document.getElementById('chapters-grid').innerHTML = '<div class="error">No chapters found.</div>';
+                    return;
+                }
+                renderChapters();
+            } catch (error) {
+                console.error('Error loading chapters:', error);
+                document.getElementById('chapters-grid').innerHTML = '<div class="error">Error loading chapters. Please try again.</div>';
+            }
+        }
+
+        async function loadChapter(index) {
+            // FIX WAS HERE: The id="back-button" is now present in the HTML
+            document.getElementById('back-button').style.display = 'inline-block';
+            if (index < 0 || index >= chapters.length) return;
+            
+            currentChapterIndex = index;
+            const chapter = chapters[index];
+            const chapterSlug = chapter.url.split('/').pop().replace(/\.[a-z]+$/, '');
+
+            // NO CHAPTER BOOKMARK LOGIC HERE - IT WAS REMOVED FROM THE VIEWER.
+            // isBookmarked status is now only for the Detail page button (isTitleBookmarked)
+
+            renderChapters();
+            
+            document.getElementById('chapters-section').style.display = 'none';
+            document.getElementById('viewer-section').classList.add('active');
+            document.getElementById('current-chapter-title').textContent = chapter.title;
+            
+            document.getElementById('prev-chapter').disabled = index === 0;
+            document.getElementById('next-chapter').disabled = index === chapters.length - 1;
+            
+            const container = document.getElementById('images-container');
+            container.innerHTML = '<div class="loading">Loading images...</div>';
+            
+            try {
+                const response = await fetch(`${baseUrl}chapter/images?url=${encodeURIComponent(chapter.url)}&type=${siteType}`);
+                const data = await response.json();
+                
+                const images = data.images || [];
+                
+                if (images.length === 0) {
+                    container.innerHTML = '<div class="error">No images found in this chapter.</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                images.forEach((imgSrc, imgIndex) => {
+                    const img = document.createElement('img');
+                    img.className = 'chapter-image';
+                    img.src = `/api/img/${btoa(btoa(imgSrc))}`;
+                    img.alt = `Page ${imgIndex + 1}`;
+                    img.loading = 'lazy';
+                    img.decoding = 'async';
+                    img.onerror = function() {
+                        this.style.display = 'none';
+                    };
+                    container.appendChild(img);
+                });
+            } catch (error) {
+                console.error('Error loading chapter images:', error);
+                container.innerHTML = '<div class="error">Error loading images. Please try again.</div>';
+            }
+        }
+
+        function renderChapters() {
+            const grid = document.getElementById('chapters-grid');
+            grid.innerHTML = '';
+            
+            chapters.forEach((chapter, index) => {
+                const div = document.createElement('div');
+                div.className = 'chapter-item';
+                if (index === currentChapterIndex) {
+                    div.classList.add('active');
+                }
+                div.onclick = () => loadChapter(index);
+                div.textContent = chapter.title;
+                grid.appendChild(div);
+            });
+        }
+
+        function loadPreviousChapter() {
+            if (currentChapterIndex > 0) {
+                loadChapter(currentChapterIndex - 1);
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function loadNextChapter() {
+            if (currentChapterIndex < chapters.length - 1) {
+                loadChapter(currentChapterIndex + 1);
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function showChapters() {
+            document.getElementById('chapters-section').style.display = 'block';
+            document.getElementById('viewer-section').classList.remove('active');
+            document.getElementById('back-button').style.display = 'none';
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('viewer-section').classList.contains('active')) {
+                if (e.key === 'ArrowLeft') {
+                    loadPreviousChapter();
+                } else if (e.key === 'ArrowRight') {
+                    loadNextChapter();
+                }
+            }
+        });
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
