@@ -1,5 +1,5 @@
 // --- START OF FILE cache.js ---
-const parsing = require('./mangaparsing');
+const parsing = require('./parsing');
 const dbModule = require('./db'); 
 const { openAndInitDb, openAndInitUserDb } = require('./db');
 const { SHOJO_DB_PATH, TOONGOD_DB_PATH, USERS_DB_PATH, MANGA_DB_PATH } = require('./config');
