@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manhwa/mg Browser</title>
+    <title>Sign Up - Manhwa Browser</title>
     <style>
+        /* Matches your Login.html styling exactly */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -24,483 +25,148 @@
             font-size: 24px;
             font-weight: 600;
         }
-        .nav-link {
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .auth-form {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        .auth-form h2 {
+            font-size: 28px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #ccc;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #303030;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #080808;
             color: #ffffff;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #5a5a5a;
+        }
+        .submit-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3a3a3a;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
             transition: background-color 0.2s;
         }
-        .nav-link:hover {
-            background-color: #1a1a1a;
+        .submit-button:hover {
+            background-color: #5a5a5a;
         }
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #1a1a1a;
-            background-color: #080808;
-            padding: 0 20px;
-        }
-        .tab-button {
-            padding: 15px 20px;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-size: 16px;
-            color: #888;
-            transition: all 0.2s;
-            border-bottom: 2px solid transparent;
-        }
-        .tab-button.active {
-            color: #ffffff;
-            border-bottom-color: #ffffff;
-        }
-        .tab-button:hover {
-            color: #ffffff;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
+        .login-link {
             display: block;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        .mg-item {
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .mg-item:hover {
-            transform: translateY(-5px);
-        }
-        .mg-cover {
-            width: 100%;
-            aspect-ratio: 3/4;
-            object-fit: cover;
-            border-radius: 8px;
-            background-color: #1a1a1a;
-            margin-bottom: 10px;
-        }
-        .mg-title {
-            font-size: 14px;
-            color: #ffffff;
             text-align: center;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 40px;
-            padding: 20px;
-        }
-        .page-button {
-            padding: 10px 20px;
-            background-color: #1a1a1a;
-            color: #ffffff;
-            border: 1px solid #2a2a2a;
-            border-radius: 4px;
-            cursor: pointer;
+            margin-top: 20px;
             font-size: 14px;
-            transition: all 0.2s;
-        }
-        .page-button:hover:not(:disabled) {
-            background-color: #2a2a2a;
-            border-color: #3a3a3a;
-        }
-        .page-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .page-info {
-            color: #888;
-            font-size: 14px;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
             color: #888;
         }
-        .error {
-            text-align: center;
-            padding: 40px;
+        .login-link a {
+            color: #ffffff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .login-link a:hover {
+            color: #ccc;
+            text-decoration: underline;
+        }
+        .error-message {
+            background-color: rgba(255, 68, 68, 0.1);
             color: #ff4444;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+            border: 1px solid #ff4444;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Man Browser</h1>
-        <div>
-            <a href="/genres.html" class="nav-link">Genres</a>
-            <a href="/search.html" class="nav-link">Search</a>
-            <a href="/settings.html" class="nav-link">Settings</a>
-            <a href="/profile.html" class="nav-link">Profile</a>
-        </div>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-button" onclick="openTab(event, 'shojo')">Shojo (KingOfShojo)</button>
-        <button class="tab-button" onclick="openTab(event, 'mg')">Mg (mgKakalot)</button>
-        <button class="tab-button" onclick="openTab(event, 'toongod')" id="toongodButton">adult</button>
+        <h1>Manhwa Browser</h1>
     </div>
 
     <div class="container">
-        
-        <div id="shojo" class="tab-content">
-            <div id="shojo-grid" class="grid"></div>
-            <div id="shojo-pagination" class="pagination"></div>
-        </div>
+        <!-- The ID allows us to handle the error text sent by your routes.js -->
+        <div id="error-box" class="error-message"></div>
 
-        <div id="toongod" class="tab-content">
-            <div id="toongod-grid" class="grid"></div>
-            <div id="toongod-pagination" class="pagination"></div>
-        </div>
+        <form class="auth-form" id="signup-form">
+            <h2>Sign Up</h2>
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="new-password">
+            </div>
+            
+            <button type="submit" class="submit-button">Create Account</button>
+            
+            <p class="login-link">Already have an account? <a href="/login">Log in here</a></p>
+        </form>
     </div>
 
     <script>
-        const baseUrl = '/api/';
-        let currentShojoPage = 1;
-        let currentToongodPage = 1;
-        let currentMgPage = 1;
-        let shojoCache = {}; // Cache for preloaded pages
-        let toongodCache = {}; // Cache for preloaded pages
-        let mgCache - {}
-        let currentTab = 'shojo';
-        if(!localStorage.getItem('adult')){
-            localStorage.setItem('adult', JSON.stringify(false));
-        }
-        if(!JSON.parse(localStorage.getItem('adult'))){
-            document.getElementById('toongodButton').style.display = 'none';
-        }
-        function openTab(evt, tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tab).classList.add('active');
-            if (evt && evt.target) {
-                evt.target.classList.add('active');
-            }
-            
-            if (tab === 'shojo') {
-                loadShojoPage(currentShojoPage);
-            } else if (tab === 'toongod') {
-                if(localStorage.getItem('adult') && JSON.parse(localStorage.getItem('adult'))===true){
-                    document.getElementById('toongodButton').style.display = 'inline-block';
-                    loadToongodPage(currentToongodPage);
+        const signupForm = document.getElementById('signup-form');
+        const errorBox = document.getElementById('error-box');
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.style.display = 'none';
+
+            const formData = new URLSearchParams(new FormData(signupForm));
+
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Success redirects to login per routes.js
+                    window.location.href = '/login';
                 } else {
-                    alert('adult content is disabled in settings.');
-                    // Switch back to mg tab
-                    openTab(null, 'shojo');
+                    // routes.js sends raw text errors like "User already exists."
+                    const errorText = await response.text();
+                    errorBox.textContent = errorText;
+                    errorBox.style.display = 'block';
                 }
-            }else{
-                loadMgPage(currentMgPage);
+            } catch (err) {
+                errorBox.textContent = "Connection error. Try again.";
+                errorBox.style.display = 'block';
             }
-        }
-
-        function renderGrid(items, gridId) {
-            const grid = document.getElementById(gridId);
-            grid.innerHTML = '';
-            
-            if (items.length === 0) {
-                grid.innerHTML = '<div class="loading">No items found</div>';
-                return;
-            }
-
-            items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'mg-item';
-                div.onclick = () => {
-                    const titleSlug = encodeURIComponent(item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''));
-                    window.location.href = `/manhwa/${titleSlug}`;
-                };
-                
-                const img = document.createElement('img');
-                img.className = 'mg-cover';
-                img.src = `/api/img/${btoa(btoa(item.cover_image_url))}` || 'https://via.placeholder.com/150x200/1a1a1a/888?text=No+Image';
-                img.onerror = function() { this.src = 'https://via.placeholder.com/150x200/1a1a1a/888?text=No+Image'; };
-                img.alt = item.title;
-                
-                const title = document.createElement('div');
-                title.className = 'mg-title';
-                title.textContent = item.title;
-                
-                div.appendChild(img);
-                div.appendChild(title);
-                grid.appendChild(div);
-            });
-        }
-
-        function renderPagination(page, totalPages, paginationId, onPageChange) {
-            const pagination = document.getElementById(paginationId);
-            pagination.innerHTML = '';
-            
-            const prevButton = document.createElement('button');
-            prevButton.className = 'page-button';
-            prevButton.textContent = 'Previous';
-            prevButton.disabled = page <= 1;
-            prevButton.onclick = () => {
-                if (page > 1) onPageChange(page - 1);
-            };
-            
-            const pageInfo = document.createElement('span');
-            pageInfo.className = 'page-info';
-            pageInfo.textContent = `Page ${page} of ${totalPages}`;
-            
-            const nextButton = document.createElement('button');
-            nextButton.className = 'page-button';
-            nextButton.textContent = 'Next';
-            nextButton.disabled = page >= totalPages;
-            nextButton.onclick = () => {
-                if (page < totalPages) onPageChange(page + 1);
-            };
-            
-            pagination.appendChild(prevButton);
-            pagination.appendChild(pageInfo);
-            pagination.appendChild(nextButton);
-        }
-
-        async function loadShojoPage(page) {
-            const grid = document.getElementById('shojo-grid');
-            grid.innerHTML = '<div class="loading">Loading...</div>';
-            
-            // Check cache first
-            if (shojoCache[page]) {
-                renderGrid(shojoCache[page].results, 'shojo-grid');
-                renderPagination(page, shojoCache[page].totalPages, 'shojo-pagination', loadShojoPage);
-                // Preload next/previous pages in background
-                preloadShojoPages(page);
-                return;
-            }
-
-            try {
-                // Load current, next, and previous pages simultaneously
-                const response = await fetch(`${baseUrl}shojo/listing/batch?page=${page}`);
-                const data = await response.json();
-                
-                // Cache all loaded pages
-                data.pages.forEach(pageData => {
-                    if (pageData.success) {
-                        shojoCache[pageData.page] = {
-                            results: pageData.results,
-                            totalPages: 98 // Hardcoded max pages
-                        };
-                    }
-                });
-
-                // Display current page
-                if (shojoCache[page]) {
-                    renderGrid(shojoCache[page].results, 'shojo-grid');
-                    renderPagination(page, shojoCache[page].totalPages, 'shojo-pagination', loadShojoPage);
-                } else {
-                    grid.innerHTML = '<div class="error">Failed to load page</div>';
-                }
-            } catch (error) {
-                console.error('Error loading shojo page:', error);
-                grid.innerHTML = '<div class="error">Error loading page. Please try again.</div>';
-            }
-        }
-        async function loadShojoPage(page) {
-            const grid = document.getElementById('mg-grid');
-            grid.innerHTML = '<div class="loading">Loading...</div>';
-            
-            // Check cache first
-            if (mgCache[page]) {
-                renderGrid(mgCache[page].results, 'shojo-grid');
-                renderPagination(page, mgCache[page].totalPages, 'shojo-pagination', loadShojoPage);
-                // Preload next/previous pages in background
-                preloadShojoPages(page);
-                return;
-            }
-
-            try {
-                // Load current, next, and previous pages simultaneously
-                const response = await fetch(`${baseUrl}shojo/listing/batch?page=${page}`);
-                const data = await response.json();
-                
-                // Cache all loaded pages
-                data.pages.forEach(pageData => {
-                    if (pageData.success) {
-                        shojoCache[pageData.page] = {
-                            results: pageData.results,
-                            totalPages: 98 // Hardcoded max pages
-                        };
-                    }
-                });
-
-                // Display current page
-                if (shojoCache[page]) {
-                    renderGrid(shojoCache[page].results, 'shojo-grid');
-                    renderPagination(page, shojoCache[page].totalPages, 'shojo-pagination', loadShojoPage);
-                } else {
-                    grid.innerHTML = '<div class="error">Failed to load page</div>';
-                }
-            } catch (error) {
-                console.error('Error loading shojo page:', error);
-                grid.innerHTML = '<div class="error">Error loading page. Please try again.</div>';
-            }
-        }
-        async function preloadShojoPages(currentPage) {
-            const pagesToPreload = [currentPage - 1, currentPage + 1].filter(p => p >= 1 && p <= 98 && !shojoCache[p]);
-            
-            if (pagesToPreload.length === 0) return;
-
-            try {
-                const promises = pagesToPreload.map(page => 
-                    fetch(`${baseUrl}shojo/listing?page=${page}`).then(r => r.json())
-                );
-                const results = await Promise.all(promises);
-                
-                results.forEach(data => {
-                    shojoCache[data.page] = {
-                        results: data.results,
-                        totalPages: data.totalPages
-                    };
-                });
-            } catch (error) {
-                console.error('Error preloading shojo pages:', error);
-            }
-        }
-
-        // Preload first two pages for both sources
-        async function preloadInitialPages() {
-            try {
-                // Preload pages 1 and 2 for Shojo and ToonGod simultaneously
-                const promises = [
-                    fetch(`${baseUrl}shojo/listing/batch?page=1`).then(r => r.json()),
-                    fetch(`${baseUrl}shojo/listing/batch?page=2`).then(r => r.json()),
-                    fetch(`${baseUrl}toongod/listing/batch?page=1`).then(r => r.json()),
-                    fetch(`${baseUrl}toongod/listing/batch?page=2`).then(r => r.json())
-                ];
-                
-                const results = await Promise.all(promises);
-                
-                // Cache shojo pages
-                results[0].pages.forEach(pageData => {
-                    if (pageData.success) {
-                        shojoCache[pageData.page] = {
-                            results: pageData.results,
-                            totalPages: 98
-                        };
-                    }
-                });
-                results[1].pages.forEach(pageData => {
-                    if (pageData.success) {
-                        shojoCache[pageData.page] = {
-                            results: pageData.results,
-                            totalPages: 98
-                        };
-                    }
-                });
-                
-                // Cache toongod pages
-                results[2].pages.forEach(pageData => {
-                    if (pageData.success) {
-                        toongodCache[pageData.page] = {
-                            results: pageData.results,
-                            totalPages: 62
-                        };
-                    }
-                });
-                results[3].pages.forEach(pageData => {
-                    if (pageData.success) {
-                        toongodCache[pageData.page] = {
-                            results: pageData.results,
-                            totalPages: 62
-                        };
-                    }
-                });
-                
-                console.log('Initial pages preloaded successfully');
-            } catch (error) {
-                console.error('Error preloading initial pages:', error);
-            }
-        }
-
-        async function loadToongodPage(page) {
-            const grid = document.getElementById('toongod-grid');
-            grid.innerHTML = '<div class="loading">Loading...</div>';
-            
-            // Check cache first
-            if (toongodCache[page]) {
-                renderGrid(toongodCache[page].results, 'toongod-grid');
-                renderPagination(page, toongodCache[page].totalPages, 'toongod-pagination', loadToongodPage);
-                // Preload next/previous pages in background
-                preloadToongodPages(page);
-                return;
-            }
-
-            try {
-                // Load current, next, and previous pages simultaneously
-                const response = await fetch(`${baseUrl}toongod/listing/batch?page=${page}`);
-                const data = await response.json();
-                
-                // Cache all loaded pages
-                data.pages.forEach(pageData => {
-                    if (pageData.success) {
-                        toongodCache[pageData.page] = {
-                            results: pageData.results,
-                            totalPages: 62
-                        };
-                    }
-                });
-
-                // Display current page
-                if (toongodCache[page]) {
-                    renderGrid(toongodCache[page].results, 'toongod-grid');
-                    renderPagination(page, toongodCache[page].totalPages, 'toongod-pagination', loadToongodPage);
-                } else {
-                    grid.innerHTML = '<div class="error">Failed to load page</div>';
-                }
-            } catch (error) {
-                console.error('Error loading toongod page:', error);
-                grid.innerHTML = '<div class="error">Error loading page. Please try again.</div>';
-            }
-        }
-
-        async function preloadToongodPages(currentPage) {
-            const pagesToPreload = [currentPage - 1, currentPage + 1].filter(p => p >= 1 && p <= 62 && !toongodCache[p]);
-            
-            if (pagesToPreload.length === 0) return;
-
-            try {
-                const promises = pagesToPreload.map(page => 
-                    fetch(`${baseUrl}toongod/listing?page=${page}`).then(r => r.json())
-                );
-                const results = await Promise.all(promises);
-                
-                results.forEach(data => {
-                    toongodCache[data.page] = {
-                        results: data.results,
-                        totalPages: data.totalPages || 50
-                    };
-                });
-            } catch (error) {
-                console.error('Error preloading toongod pages:', error);
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Start preloading pages 1 and 2 for both sources
-            preloadInitialPages();
-            // Load the first shojo page (will use cache if already loaded)
-            loadShojoPage(1);
         });
     </script>
 </body>
