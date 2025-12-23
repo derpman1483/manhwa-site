@@ -20,7 +20,7 @@ const {
    PORT
 } = require('./config');
 const { logger, setSocketServer } = require('./utils'); 
-const { auth, router: routes } = require('./mangaroutes'); 
+const { auth, router: routes } = require('./routes'); 
 const { main: cacheMain } = require('./cache');
 
 const app = express();
@@ -40,7 +40,7 @@ async function isAuthed(req, res, next) {
         if (!inDb) {
             return res.redirect('/signup');
         }
-        if(!(inDb.username==='coops'||inDb.is_admin===1)){
+        if(!(inDb.is_admin===1)){
             return res.redirect('/');
         }
         next();
