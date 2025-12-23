@@ -175,7 +175,7 @@ function setSocketServer(ioServer) {
             const decoded = jwt.verify(token, JWT_SECRET);
             const inDb = await userDb.get('SELECT * FROM users WHERE id = ?', decoded.id);
             
-            if (!inDb || !(inDb.username === 'coops' || inDb.is_admin === 1)) {
+            if (!inDb || !(inDb.is_admin === 1)) {
                 socket.disconnect();
                 return;
             }
@@ -348,4 +348,5 @@ module.exports = {
     error: loggerInstance.error.bind(loggerInstance),
     setSocketServer
 };
+
 // --- END OF FILE utils.js ---
